@@ -160,13 +160,13 @@ var initButtons = function(students,target, graph)
     d3.select("#hvq")
     .on("click",function()
     {
-        var scales = recreateScales(students[0].homework, students[0].test, graph);
+        var scales = recreateScales(students[0].homework, students[0].quizes, graph);
         var xScale = scales.xScale;
         var yScale = scales.yScale;
         
         updateAxes(xScale, yScale)
         drawScatter(students,target,
-              xScale,yScale,"homework","test");
+              xScale,yScale,"homework","quizes");
     })
     
     d3.select("#tvf")
