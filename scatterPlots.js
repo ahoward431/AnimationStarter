@@ -13,11 +13,17 @@ var drawScatter = function(students,target,
 
     setBanner(xProp.toUpperCase() +" vs "+ yProp.toUpperCase());
     
+    var circles = d3.select(target).select(".graph")
+                    .selectAll("circle")
+                    .data(students);
+    circles.enter()
+           .append("circle");
+    circles.exit()
+           .remove();
     d3.select(target).select(".graph")
     .selectAll("circle")
-    .data(students)
-    .enter()
-    .append("circle")
+    .transition()
+    .duration(1000)
     .attr("cx",function(student)
     {
         return xScale(getMeanGrade(student[xProp]));    
@@ -38,7 +44,7 @@ var clearScatter = function(target)
 }
 
 
-var createAxes = function(screen,margins,graph,
+var initAxes = function(screen,margins,graph,
                            target,xScale,yScale)
 {
     var xAxis = d3.axisBottom(xScale);
@@ -49,10 +55,12 @@ var createAxes = function(screen,margins,graph,
     axes.append("g")
         .attr("transform","translate("+margins.left+","
              +(margins.top+graph.height)+")")
+        .attr("id", "xAxis")
         .call(xAxis)
     axes.append("g")
         .attr("transform","translate("+margins.left+","
              +(margins.top)+")")
+        .attr("id", "yAxis")
         .call(yAxis)
 }
 
@@ -98,9 +106,9 @@ var initGraph = function(target,students)
   
     
     
-    createAxes(screen,margins,graph,target,xScale,yScale);
+    initAxes(screen,margins,graph,target,xScale,yScale);
     
-    initButtons(students,target,xScale,yScale);
+    initButtons(students,target, graph);
     
     setBanner("Click buttons to graphs");
     
@@ -108,13 +116,43 @@ var initGraph = function(target,students)
 
 }
 
-var initButtons = function(students,target,xScale,yScale)
+var recreateScales = function(xArray, yArray, graph) {
+    var xScale = d3.scaleLinear()
+        .domain([0,xArray[0].max])
+        .range([0,graph.width]);
+           
+    var yScale = d3.scaleLinear()
+        .domain([0,yArray[0].max])
+        .range([graph.height,0]);
+    return {xScale: xScale, yScale: yScale};
+}
+
+var updateAxes = function(xScale, yScale) {
+    var xAxis = d3.axisBottom(xScale);
+    var yAxis = d3.axisLeft(yScale);
+    
+    d3.select("#xAxis")
+        .transition()
+        .duration(1000)
+        .call(xAxis)
+    
+    d3.select("#yAxis")
+        .transition()
+        .duration(1000)
+        .call(yAxis)
+}
+
+var initButtons = function(students,target, graph)
 {
     
     d3.select("#fvh")
     .on("click",function()
     {
-        clearScatter(target);
+        var scales = recreateScales(students[0].final, students[0].homework, graph);
+        var xScale = scales.xScale;
+        var yScale = scales.yScale;
+        
+        updateAxes(xScale, yScale)
         drawScatter(students,target,
               xScale,yScale,"final","homework");
     })
@@ -122,7 +160,11 @@ var initButtons = function(students,target,xScale,yScale)
     d3.select("#hvq")
     .on("click",function()
     {
-        clearScatter(target);
+        var scales = recreateScales(students[0].homework, students[0].test, graph);
+        var xScale = scales.xScale;
+        var yScale = scales.yScale;
+        
+        updateAxes(xScale, yScale)
         drawScatter(students,target,
               xScale,yScale,"homework","test");
     })
@@ -130,7 +172,11 @@ var initButtons = function(students,target,xScale,yScale)
     d3.select("#tvf")
     .on("click",function()
     {
-        clearScatter(target);
+        var scales = recreateScales(students[0].test, students[0].final, graph);
+        var xScale = scales.xScale;
+        var yScale = scales.yScale;
+        
+        updateAxes(xScale, yScale)
         drawScatter(students,target,
               xScale,yScale,"test","final");
     })
@@ -138,7 +184,11 @@ var initButtons = function(students,target,xScale,yScale)
     d3.select("#tvq")
     .on("click",function()
     {
-        clearScatter(target);
+        var scales = recreateScales(students[0].test, students[0].quizes, graph);
+        var xScale = scales.xScale;
+        var yScale = scales.yScale;
+        
+        updateAxes(xScale, yScale)
         drawScatter(students,target,
               xScale,yScale,"test","quizes");
     })
